@@ -5,7 +5,7 @@ from turtle import update
 from unittest import result
 from urllib.parse import _NetlocResultMixinStr
 from pkg_resources import resource_listdir
-import pymongo
+import pymongo, writeFile
 
 # ---- connecting the mongoDB database
 myclient = pymongo.MongoClient("mongodb+srv://mongo:bShxLstlQzls2QZO@cluster0.1f7n9.mongodb.net/?retryWrites=true&w=majority")
@@ -21,6 +21,8 @@ class userInfo:
         self.summer = summer
         self.summerCreditHr = summerCreditHr
         self.startSem = startSem
+    def getInfo():
+        return userInfo()
 
 class courseInfo:
     def setType(self, type):
@@ -35,6 +37,19 @@ class courseInfo:
         self.courses = courses
     def getCourses(self):
         return self.courses
+    def setHeading(self, heading):
+        self.heading = heading
+    def getHeading(self):
+        return self.heading
+    def setData(self, data):
+        self.data = data
+    def getData(self):
+        return self.data
+    def setDataHold(self, datahold):
+        self.datahold = datahold
+    def getDataHold(self):
+        return self.datahold
+
 
 def create_Query(varTerm, varType):
     criteria1 = {}
@@ -75,6 +90,27 @@ def query_Class(myFilter, usrCourses):
 
     return availCourses
 
+def createNestedList(list_for_term):
+    print("THIS IS CREATE NESTED LIST")
+    temp = list_for_term
+    print(temp)
+    thisClass.setDataHold([])
+    list = thisClass.getData()
+    newlist = updateCourse(list, temp)
+    thisClass.setData(newlist)
+
+def listTerms(term):
+    oldList = thisClass.getHeading()
+    newList = updateCourse(oldList, term)
+    thisClass.setHeading(newList)
+
+
+def storeDataHold(course):
+    mylist = thisClass.getDataHold()
+    nlist = updateCourse(mylist, course)
+    thisClass.setDataHold(nlist)
+
+
 def updateCourse(list, var):
     list.append(var)
     return list
@@ -84,10 +120,16 @@ def updateResult(var):
     thisClass.setCourses(newlist)
 
 def printResult(printCourses):
+    thisList = []
     for x in printCourses:
         courseMatch = (printCourses[x]['_id'])
+        name = (printCourses[x]['name'])
+        description = (printCourses[x]['description'])
     print (courseMatch)
+    thisList = [courseMatch, name, description]
+    storeDataHold(thisList)
     updateResult(courseMatch)
+    
 
 def checkReqs(usrList):
     bool = False
@@ -148,24 +190,25 @@ def calcCredits():
     else:        
         curCredit = user.creditHr / 3
     return curCredit
+
+  
+def input(name, credithr, list, summer, summercr, start):
+    print('hi')
+
 # myquery = create_Query(th)
 # ---- user input from php form
-user = userInfo('Evelyn', 6, ['ET551', 'ET552'], True, 3, 'spring')
+user = userInfo('Evelyn', 3, ['ET551', 'ET552'], True, 3, 'spring')
+
 
 # ---- grabs info for the script
+
 thisClass = courseInfo()
 thisClass.setCourses(user.courseList)
 thisClass.setTerm(user.startSem)
 thisClass.setType('base')
-
-
-# ---- creates the filter for the query
-
-
-
-# ---- runs a query and returns all the classes that are available
-
-# ----- returns the list of all available courses
+thisClass.setHeading([])
+thisClass.setData([])
+thisClass.setDataHold([])
 
 # prints the first available course for 
 
@@ -176,6 +219,8 @@ while checkReqs(thisClass.getCourses()) == False:
     i = 0
     myQuery = create_Query(thisClass.getTerm(), thisClass.getType())
     print(thisClass.getTerm() + ": ")
+    
+    listTerms(thisClass.getTerm())
     while i < z:
         results = query_Class(myQuery, thisClass.getCourses())
         printCourses = results
@@ -186,10 +231,25 @@ while checkReqs(thisClass.getCourses()) == False:
             resultsEle = query_Class(newfilter, thisClass.getCourses())
             printResult(resultsEle)
         i= i + 1
+    createNestedList(thisClass.getDataHold())
     next_semester(thisClass.getTerm(), user.summer)
 
+# parses through courses and gathers information for the html table
+# nestedList = []
+# count = 1
+# dataDict = {}
+# for item in data:
+#     dict = {"_id": "null"}
+#     dict["_id"] = item
+#     sendData = mycol.find(dict)
+#     for result in sendData:
+#         dataDict.update({count: result})
+#         count = count + 1
 
-
-
-
+# for key in dataDict:
+#     thislist = []
+#     thislist.append(dataDict[key]['_id'])
+#     thislist.append(dataDict[key]['name'])
+#     thislist.append(dataDict[key]['description'])
+#     nestedList.append(thislist)
 
